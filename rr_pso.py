@@ -50,9 +50,10 @@ def rr_pso(x0, v0, dt, a1, a2, omega, criteria, memory=False, max_iter=int(1e6))
     lbest = x0
 
     while i < max_iter:
-        options = criteria(x) > criteria(lbest)
-        lbest = options * x + (1 - options) * lbest
-        gbest = lbest[np.where(np.max(criteria(lbest)) == criteria(lbest))][0]
+        clbest = criteria(lbest)
+        options = criteria(x) >= clbest
+        lbest = options * x + np.logical_not(options) * lbest
+        gbest = lbest[np.where(np.max(clbest) == clbest)][0]
 
         x, v = update_xv(x, v, dt, a1, a2, gbest, lbest, omega)
 
