@@ -58,3 +58,5 @@ def rr_pso(x0, v0, dt, a1, a2, omega, criteria, memory=False, max_iter=int(1e6))
         x, v = update_xv(x, v, dt, a1, a2, gbest, lbest, omega)
 
         i += 1
+
+    return x
