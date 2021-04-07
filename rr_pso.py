@@ -3,9 +3,22 @@ import numpy as np
 
 def constant_parameter_generator(nparticles):
     dt = np.full((nparticles, 1), 1)
-    a1 = np.full((nparticles, 1), 0.6)
-    a2 = np.full((nparticles, 1), 0.4)
-    omega = np.full((nparticles, 1), 0.3)
+    a1 = np.full((nparticles, 1), 4)
+    a2 = np.full((nparticles, 1), 2)
+    omega = np.full((nparticles, 1), 2.5)
+    return dt, a1, a2, omega
+
+
+def parameter_generator_dt_constant(nparticles):
+    dt = np.full((nparticles, 1), 1)
+
+    omega = 2 + np.random.random((nparticles, 1))
+
+    phibar = 3 * (omega - 3/2)
+
+    alpha = 1.5 * np.random.random((nparticles, 1))
+    a1 = 2 * phibar * alpha
+    a2 = 2 * phibar * (1 - alpha)
     return dt, a1, a2, omega
 
 
@@ -84,13 +97,14 @@ if __name__ == '__main__':
     npart = 10
     nparams = 3
     x0 = 10 * (0.5 - np.random.random((npart, nparams)))
-    v0 = 0.2 * (0.5 - np.random.random((npart, nparams)))
+    v0 = 0.6 * (0.5 - np.random.random((npart, nparams)))
 
     x1 = rr_pso(x0,
                 v0,
-                parameter_generator=constant_parameter_generator,
+                parameter_generator=parameter_generator_dt_constant,
                 criteria=zero_criteria,
-                max_iter=1000)
+                max_iter=1e5)
+
     print("av fit x0: ", np.mean(zero_criteria(x0)))
     print("x0: \n", x0)
     print("\nav fit x1: ", np.mean(zero_criteria(x1)))
