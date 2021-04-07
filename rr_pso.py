@@ -77,19 +77,21 @@ def rr_pso(x0, v0, parameter_generator, criteria, memory=False, max_iter=int(1e6
 
 
 def zero_criteria(x):
-    return -np.max(abs(x), axis=1)
+    return -np.mean(abs(x), axis=1)
 
 
 if __name__ == '__main__':
     npart = 10
     nparams = 3
-    x0 = np.random.random((npart, nparams))
-    v0 = 0.1 * np.random.random((npart, nparams))
+    x0 = 10 * (0.5 - np.random.random((npart, nparams)))
+    v0 = 0.2 * (0.5 - np.random.random((npart, nparams)))
 
-    x = rr_pso(x0,
-               v0,
-               parameter_generator=constant_parameter_generator,
-               criteria=zero_criteria,
-               max_iter=10)
+    x1 = rr_pso(x0,
+                v0,
+                parameter_generator=constant_parameter_generator,
+                criteria=zero_criteria,
+                max_iter=1000)
+    print("av fit x0: ", np.mean(zero_criteria(x0)))
     print("x0: \n", x0)
-    print("\nx: \n", x)
+    print("\nav fit x1: ", np.mean(zero_criteria(x1)))
+    print("x: \n", x1)
