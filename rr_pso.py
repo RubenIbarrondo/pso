@@ -3,9 +3,12 @@ import numpy as np
 
 def constant_parameter_generator(nparticles):
     dt = np.full((nparticles, 1), 1)
-    a1 = np.full((nparticles, 1), 4)
-    a2 = np.full((nparticles, 1), 2)
-    omega = np.full((nparticles, 1), 2.5)
+    omega = np.full((nparticles, 1), 3.9)
+    phibar = np.full((nparticles, 1), 6.97)
+
+    alpha = 1.5 * np.random.random((nparticles, 1))
+    a1 = 2 * phibar * alpha
+    a2 = 2 * phibar * (1 - alpha)
     return dt, a1, a2, omega
 
 
@@ -52,7 +55,7 @@ def update_xv(x, v, dt, a1, a2, gbest, lbest, omega):
     return x_new, v_new
 
 
-def rr_pso(x0, v0, parameter_generator, criteria, memory=False, max_iter=int(1e6)):
+def rr_pso(x0, v0, parameter_generator, criteria, memory=False, max_iter=500):
     """
 
     :param x0: vector de valores inciales, (numero_de_partículas x numero_de_parametros)
@@ -73,6 +76,11 @@ def rr_pso(x0, v0, parameter_generator, criteria, memory=False, max_iter=int(1e6
     x = x0
     v = v0
     lbest = x0
+    if memory:
+        X = np.zeros((max_iter+1, x.shape[0], x.shape[1]))
+        X[0] = x0
+        V = np.zeros((max_iter+1,  v.shape[0], v.shape[1]))
+        V[0] = v0
 
     while i < max_iter:
         clbest = criteria(lbest)
@@ -84,9 +92,16 @@ def rr_pso(x0, v0, parameter_generator, criteria, memory=False, max_iter=int(1e6
 
         x, v = update_xv(x, v, dt, a1, a2, gbest, lbest, omega)
 
+        if memory:
+            X[i+1] = x
+            V[i+1] = v
+
         i += 1
 
-    return x
+    if not memory:
+        return x
+    else:
+        return X, V
 
 
 def zero_criteria(x):
