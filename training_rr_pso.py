@@ -17,11 +17,14 @@ def rosenbrock(x):
     return r
 
 
-def training_rr_pso(criteria, nparticles=40, nparams=30):
+def training_rr_pso(criteria, nparticles=40, nparams=30, xlim=np.array([-1, 1])):
     # Griewank: dx = 1200
     # Rosenbrock: dx = 60
-    dx = 1200
-    x0 = dx * (0.5 - np.random.random((nparticles, nparams)))
+    dx = 60
+    if xlim.shape[0] == 1:
+        x0 = np.min(xlim) + (np.max(xlim)-np.min(xlim)) * np.random.random((nparticles, nparams))
+    else:
+        x0 = np.min(xlim, axis=1) + (np.max(xlim, axis=1) - np.min(xlim, axis=1)) * np.random.random((nparticles, nparams))
     v0 = 0.6 * (0.5 - np.random.random((nparticles, nparams)))
 
     X, V = rr_pso.rr_pso(x0,
@@ -51,9 +54,9 @@ if __name__ == '__main__':
 
         error_iter_arr.append(np.array([mean_error(xi) for xi in X]))
 
-    print(np.median(np.array(me_arr)))
+    print(np.sqrt(np.sum(np.array(me_arr)**2) / len(me_arr)))
 
-    error_iter = np.mean(np.array(error_iter_arr), axis=0)
+    error_iter = np.sqrt(np.sum(np.array(error_iter_arr)**2, axis=0) / np.array(error_iter_arr).shape[0])
 
     plt.plot(np.log10(error_iter))
     plt.show()
