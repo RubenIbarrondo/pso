@@ -5,8 +5,12 @@ import rr_pso
 import training_rr_pso
 
 
-def verhulst(t, k=1, p0=1, r=1, t0=0):
-    return k * p0 / (k * np.exp(- r * (t-t0)) + p0 * (1 - np.exp(-r * (t-t0))))
+def verhulst(t, k=1, p0=1, r=1):
+    k = np.max([k, 1e-3])
+    p0 = np.max([p0, 1e-3])
+    r = np.max([r, 0])
+
+    return k * p0 / (p0 + (k - p0) * np.exp(- r * t))
 
 
 def gompertz(t, n0=1, c=1, a=1):
@@ -18,21 +22,21 @@ def covid_fitness(x):
     fitness = np.zeros(x.shape[0])
     for i in range(x.shape[0]):
         fitness[i] = - np.sum(abs(data - estimator(t, *x[i])))
-        fitness[i] -= 100 * np.all(x[i] < xlim[:, 0])
-        fitness[i] -= 100 * np.all(x[i] > xlim[:, 1])
+        fitness[i] += 1e6 * np.all(x[i] >= xlim[:, 0])
+        fitness[i] += 1e6 * np.all(x[i] <= xlim[:, 1])
     return fitness
 
 
 if __name__ == '__main__':
-    data = np.array(pd.read_csv('covid_aragon_ola_3')['PCR'])
+    data = np.array(pd.read_csv('covid_aragon_ola_2')['PCR'])
     data = data - np.min(data)
 
     estimator = verhulst
     t = np.arange(len(data))
 
-    xlim = np.array([[0, np.max(data)*1.25], [1, 10], [0, 100], [0, 50]])
+    xlim = np.array([[0, np.max(data)*1.25], [1, 10], [0, 100]])
 
-    X, V = training_rr_pso.training_rr_pso(criteria=covid_fitness, nparams=4, xlim=xlim)
+    X, V = training_rr_pso.training_rr_pso(criteria=covid_fitness, nparams=3, xlim=xlim)
     x = X[-1]
 
     fit_arr = covid_fitness(x)
@@ -57,8 +61,4 @@ if __name__ == '__main__':
 
     plt.hist(x[:, 2])
     plt.title('r')
-    plt.show()
-
-    plt.hist(x[:, 3])
-    plt.title('t')
     plt.show()
