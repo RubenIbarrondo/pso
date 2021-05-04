@@ -71,7 +71,7 @@ if __name__ == '__main__':
     me_arr = []
     error_iter_arr = []
 
-    X, V = training_rr_pso(criteria=lambda y: -griewank(y), nparams=2, xlim=np.array([-600, 600]))
+    X, V = training_rr_pso(criteria=lambda y: -griewank(y), nparams=2, xlim=np.array([[-600], [600]]))
     N = X.shape[0]
 
     xp = X[:, :, 0]
@@ -85,14 +85,12 @@ if __name__ == '__main__':
     Zmesh = griewank(np.column_stack([Xflat, Yflat])).reshape(Xmesh.shape)
 
     mlab.mesh(Xmesh, Ymesh, Zmesh)
-    sp = mlab.points3d(xp[N-1], yp[N-1], zp[N-1], np.ones(zp[0].shape), scale_factor=10)
+    sp = mlab.points3d(xp[N-1], yp[N-1], zp[N-1], np.ones(zp[0].shape), scale_factor=10, color=(.75, .75, .75))
     #mlab.show()
 
     @mlab.animate(delay=700, support_movie=True)
     def anim():
        for i in range(len(xp)):
-           #s.mlab_source.scalars = np.sin((x*x+y*y+i*np.pi)/10)
-
            sp.mlab_source.y = yp[i]
            sp.mlab_source.x = xp[i]
            sp.mlab_source.z = zp[i]
