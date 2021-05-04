@@ -86,7 +86,8 @@ def rr_pso(x0, v0, parameter_generator, criteria, memory=False, max_iter=500):
         clbest = criteria(lbest)
         options = (criteria(x) >= clbest).reshape((x.shape[0], 1))
         lbest = options * x + np.logical_not(options) * lbest
-        gbest = lbest[np.where(np.max(clbest) == clbest)][0]
+
+        gbest = lbest[np.where(np.nanmax(clbest) == clbest)][0]
 
         dt, a1, a2, omega = parameter_generator(x.shape[0])
 
