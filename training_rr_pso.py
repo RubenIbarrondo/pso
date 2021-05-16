@@ -20,11 +20,10 @@ def rosenbrock(x):
     return r
 
 
-def training_rr_pso(criteria, nparticles=40, nparams=30, xlim=np.array([-1, 1])):
+def training_rr_pso(criteria, nparticles=40, nparams=30, xlim=np.array([-1, 1]), max_iter=200, parameter_gemerator=rr_pso.constant_parameter_generator):
     # Griewank: dx = 1200
     # Rosenbrock: dx = 60
-    dx = 60
-    if xlim.shape[0] == 1:
+    if xlim.shape[0] != nparams:
         x0 = np.min(xlim) + (np.max(xlim)-np.min(xlim)) * np.random.random((nparticles, nparams))
     else:
         x0 = np.min(xlim, axis=1) + (np.max(xlim, axis=1) - np.min(xlim, axis=1)) * np.random.random((nparticles, nparams))
@@ -32,10 +31,10 @@ def training_rr_pso(criteria, nparticles=40, nparams=30, xlim=np.array([-1, 1]))
 
     X, V = rr_pso.rr_pso(x0,
                          v0,
-                         parameter_generator=rr_pso.constant_parameter_generator,
+                         parameter_generator=parameter_gemerator,
                          criteria=criteria,
                          memory=True,
-                         max_iter=200)
+                         max_iter=max_iter)
     return X, V
 
 
@@ -50,51 +49,51 @@ def mean_error(x, x_opt=None):
 if __name__ == '__main__':
     # TEST CON 30 PARÁMETROS
 
-    # me_arr = []
-    # error_iter_arr = []
-    # for run in range(100):
-    #     X, V = training_rr_pso(criteria=lambda y: -griewank(y))
-    #     x = X[-1]
-    #     me_arr.append(mean_error(x))
-    #
-    #     error_iter_arr.append(np.array([mean_error(xi) for xi in X]))
-    #
-    # print(np.median(np.array(me_arr)))
-    #
-    # error_iter = np.mean(np.array(error_iter_arr), axis=0)
-    #
-    # plt.plot(np.log10(error_iter))
-    # plt.show()
+    me_arr = []
+    error_iter_arr = []
+    for run in range(100):
+        X, V = training_rr_pso(criteria=lambda y: -griewank(y))
+        x = X[-1]
+        me_arr.append(mean_error(x))
+
+        error_iter_arr.append(np.array([mean_error(xi) for xi in X]))
+
+    print(np.median(np.array(me_arr)))
+
+    error_iter = np.mean(np.array(error_iter_arr), axis=0)
+
+    plt.plot(np.log10(error_iter))
+    plt.show()
 
     # TEST CON 2 PARÁMETROS
 
-    me_arr = []
-    error_iter_arr = []
-
-    X, V = training_rr_pso(criteria=lambda y: -griewank(y), nparams=2, xlim=np.array([[-600], [600]]))
-    N = X.shape[0]
-
-    xp = X[:, :, 0]
-    yp = X[:, :, 1]
-    zp = np.array([griewank(X[g, :, :]) for g in range(N)])
-
-    d = 500
-    Xmesh, Ymesh = np.meshgrid(np.linspace(-d, d, 500), np.linspace(-d, d, 500))
-    Xflat = Xmesh.flatten()
-    Yflat = Ymesh.flatten()
-    Zmesh = griewank(np.column_stack([Xflat, Yflat])).reshape(Xmesh.shape)
-
-    mlab.mesh(Xmesh, Ymesh, Zmesh)
-    sp = mlab.points3d(xp[N-1], yp[N-1], zp[N-1], np.ones(zp[0].shape), scale_factor=10, color=(.75, .75, .75))
-    #mlab.show()
-
-    @mlab.animate(delay=700, support_movie=True)
-    def anim():
-       for i in range(len(xp)):
-           sp.mlab_source.y = yp[i]
-           sp.mlab_source.x = xp[i]
-           sp.mlab_source.z = zp[i]
-           yield
-
-    anim()
-    mlab.show()
+    # me_arr = []
+    # error_iter_arr = []
+    #
+    # X, V = training_rr_pso(criteria=lambda y: -griewank(y), nparams=2, xlim=np.array([[-600], [600]]))
+    # N = X.shape[0]
+    #
+    # xp = X[:, :, 0]
+    # yp = X[:, :, 1]
+    # zp = np.array([griewank(X[g, :, :]) for g in range(N)])
+    #
+    # d = 500
+    # Xmesh, Ymesh = np.meshgrid(np.linspace(-d, d, 500), np.linspace(-d, d, 500))
+    # Xflat = Xmesh.flatten()
+    # Yflat = Ymesh.flatten()
+    # Zmesh = griewank(np.column_stack([Xflat, Yflat])).reshape(Xmesh.shape)
+    #
+    # mlab.mesh(Xmesh, Ymesh, Zmesh)
+    # sp = mlab.points3d(xp[N-1], yp[N-1], zp[N-1], np.ones(zp[0].shape), scale_factor=10, color=(.75, .75, .75))
+    # #mlab.show()
+    #
+    # @mlab.animate(delay=700, support_movie=True)
+    # def anim():
+    #    for i in range(len(xp)):
+    #        sp.mlab_source.y = yp[i]
+    #        sp.mlab_source.x = xp[i]
+    #        sp.mlab_source.z = zp[i]
+    #        yield
+    #
+    # anim()
+    # mlab.show()
