@@ -15,7 +15,8 @@ def constant_parameter_generator(nparticles):
 def parameter_generator_dt_constant(nparticles):
     dt = np.full((nparticles, 1), 1)
 
-    omega = 2 + np.random.random((nparticles, 1))
+    #omega = 2 + np.random.random((nparticles, 1))
+    omega = 3.9 + np.random.normal(0.0, 1.0, (nparticles, 1))
 
     phibar = 3 * (omega - 3/2)
 
