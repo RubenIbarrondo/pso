@@ -17,7 +17,7 @@ def gompertz(t, n0=1, c=1, a=1):
     return n0 * np.exp(-c*(np.exp(a * t) - 1))
 
 
-def covid_fitness(x):
+def covid_fitness(x, data, estimator, xlim):
     t = np.arange(len(data))
     fitness = np.zeros(x.shape[0])
     for i in range(x.shape[0]):
@@ -25,6 +25,33 @@ def covid_fitness(x):
         fitness[i] += 1e6 * np.all(x[i] >= xlim[:, 0])
         fitness[i] += 1e6 * np.all(x[i] <= xlim[:, 1])
     return fitness
+
+
+def fit_covid_wave(data, max_iter=100, test_number=10):
+    data = data - np.min(data)
+
+    estimator = verhulst
+    t = np.arange(len(data))
+
+    xlim = np.array([[0, np.max(data) * 1.25],  # k
+                     [1, 1000],  # p0
+                     [0, 10]  # r
+                     ])
+    best_fit = -1e17
+
+    for test in range(test_number):
+        X, V = training_rr_pso.training_rr_pso(criteria=lambda x: covid_fitness(x, data, estimator, xlim),
+                                               nparams=3, xlim=xlim, max_iter=max_iter)
+
+        fval = np.array([covid_fitness(xi, data, estimator, xlim) for xi in X])
+
+        if np.max(fval) > best_fit:
+            Xbest = X
+            x = X[-1]
+
+            fit_arr = covid_fitness(x, data, estimator, xlim)
+            x0 = x[np.where(fit_arr == np.nanmax(fit_arr))][0]
+    return fval, x, x0, Xbest
 
 
 if __name__ == '__main__':
@@ -36,10 +63,12 @@ if __name__ == '__main__':
 
     xlim = np.array([[0, np.max(data)*1.25], [1, 10], [0, 100]])
 
-    X, V = training_rr_pso.training_rr_pso(criteria=covid_fitness, nparams=3, xlim=xlim)
+    X, V = training_rr_pso.training_rr_pso(criteria=lambda x: covid_fitness(x, data, estimator, xlim),
+                                           nparams=3,
+                                           xlim=xlim)
     x = X[-1]
 
-    fit_arr = covid_fitness(x)
+    fit_arr = covid_fitness(x, data, estimator, xlim)
     print(fit_arr)
     x0 = x[np.where(fit_arr == np.nanmax(fit_arr))][0]
 
