@@ -17,17 +17,20 @@ def gompertz(t, n0=1, c=1, a=1):
     return n0 * np.exp(-c*(np.exp(a * t) - 1))
 
 
-def covid_fitness(x, data, estimator, xlim):
+def covid_fitness(x, data, estimator, xlim, tol=None):
     t = np.arange(len(data))
     fitness = np.zeros(x.shape[0])
     for i in range(x.shape[0]):
-        fitness[i] = - np.sum(abs(data - estimator(t, *x[i])))
-        fitness[i] += 1e6 * np.all(x[i] >= xlim[:, 0])
-        fitness[i] += 1e6 * np.all(x[i] <= xlim[:, 1])
+        if tol is None:
+            fitness[i] = - np.sqrt(np.sum((data - estimator(t, *x[i]))**2) / np.sum(data**2))
+        else:
+            fitness[i] = - np.max([np.sqrt(np.sum((data - estimator(t, *x[i]))**2) / np.sum(data**2)), tol])
+        #fitness[i] += 1e6 * np.all(x[i] >= xlim[:, 0])
+        #fitness[i] += 1e6 * np.all(x[i] <= xlim[:, 1])
     return fitness
 
 
-def fit_covid_wave(data, max_iter=100, test_number=10):
+def fit_covid_wave(data, max_iter=100, test_number=10, tol=.15):
     data = data - np.min(data)
 
     estimator = verhulst
@@ -40,8 +43,9 @@ def fit_covid_wave(data, max_iter=100, test_number=10):
     best_fit = -1e17
 
     for test in range(test_number):
-        X, V = training_rr_pso.training_rr_pso(criteria=lambda x: covid_fitness(x, data, estimator, xlim),
-                                               nparams=3, xlim=xlim, max_iter=max_iter)
+        X, V = training_rr_pso.training_rr_pso(criteria=lambda x: covid_fitness(x, data, estimator, xlim, tol),
+                                               nparams=3, xlim=xlim, max_iter=max_iter,
+                                               parameter_gemerator=rr_pso.constant_parameter_generator)
 
         fval = np.array([covid_fitness(xi, data, estimator, xlim) for xi in X])
 
