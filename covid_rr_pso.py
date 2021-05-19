@@ -21,16 +21,16 @@ def covid_fitness(x, data, estimator, xlim, tol=None):
     t = np.arange(len(data))
     fitness = np.zeros(x.shape[0])
     for i in range(x.shape[0]):
-        if tol is None:
-            fitness[i] = - np.sqrt(np.sum((data - estimator(t, *x[i]))**2) / np.sum(data**2))
-        else:
-            fitness[i] = - np.max([np.sqrt(np.sum((data - estimator(t, *x[i]))**2) / np.sum(data**2)), tol])
+        fitness[i] = - np.sqrt(np.sum((data - estimator(t, *x[i])) ** 2) / np.sum(data ** 2))
+        if tol is not None:
+            if abs(fitness[i]) <= tol:
+                fitness[i] = - tol + np.random.random() * np.exp(fitness[i])
         #fitness[i] += 1e6 * np.all(x[i] >= xlim[:, 0])
         #fitness[i] += 1e6 * np.all(x[i] <= xlim[:, 1])
     return fitness
 
 
-def fit_covid_wave(data, max_iter=100, test_number=10, tol=.15):
+def fit_covid_wave(data, max_iter=100, test_number=10, nparticles=40, tol=.15):
     data = data - np.min(data)
 
     estimator = verhulst
@@ -40,22 +40,23 @@ def fit_covid_wave(data, max_iter=100, test_number=10, tol=.15):
                      [1, 1000],  # p0
                      [0, 10]  # r
                      ])
-    best_fit = -1e17
+    best_err = 1e17
 
     for test in range(test_number):
         X, V = training_rr_pso.training_rr_pso(criteria=lambda x: covid_fitness(x, data, estimator, xlim, tol),
-                                               nparams=3, xlim=xlim, max_iter=max_iter,
+                                               nparticles=nparticles, nparams=3, xlim=xlim, max_iter=max_iter,
                                                parameter_gemerator=rr_pso.constant_parameter_generator)
 
-        fval = np.array([covid_fitness(xi, data, estimator, xlim) for xi in X])
+        err_evol = np.array([[np.sqrt(np.sum((data - estimator(t, *xij)) ** 2) / np.sum(data ** 2)) for xij in xi] for xi in X])
 
-        if np.max(fval) > best_fit:
+        if np.min(err_evol) < best_err:
+            best_err_evol = err_evol
             Xbest = X
             x = X[-1]
 
-            fit_arr = covid_fitness(x, data, estimator, xlim)
-            x0 = x[np.where(fit_arr == np.nanmax(fit_arr))][0]
-    return fval, x, x0, Xbest
+            err_arr = [np.sqrt(np.sum((data - estimator(t, *xi)) ** 2) / np.sum(data ** 2)) for xi in x]
+            x0 = x[np.where(err_arr == np.nanmin(err_arr))][0]
+    return best_err_evol, x, x0, Xbest
 
 
 if __name__ == '__main__':
