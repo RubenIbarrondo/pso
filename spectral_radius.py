@@ -44,6 +44,7 @@ plt.colorbar(im)
 plt.xlabel('$\omega$')
 plt.ylabel('$\overline{\phi}$')
 plt.title('Spectral radius')
+plt.savefig("spectralradius1", dpi=300)
 plt.show()
 
 im2 = plt.imshow(Z2,cmap=plt.cm.RdBu,
@@ -61,6 +62,7 @@ plt.colorbar(im2)
 plt.xlabel('$\omega$')
 plt.ylabel('$\overline{\phi}$')
 plt.title('Spectral radius')
+plt.savefig("spectralradius2", dpi=300)
 plt.show()
 
 
